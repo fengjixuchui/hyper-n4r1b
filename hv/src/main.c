@@ -1,11 +1,14 @@
 #include <wdm.h>
 
 #include "..\include\logger\logger.h"
+#include "..\include\arch\vmx.h"
 
 
 DRIVER_UNLOAD DriverUnload;
 
 DRIVER_INITIALIZE DriverEntry;
+
+DRIVER_DISPATCH InitHv;
 
 #define NT_DEVICE_NAME      L"\\Device\\hv-n4r1b"
 #define DOS_DEVICE_NAME     L"\\DosDevices\\hv-n4r1b"
@@ -46,6 +49,7 @@ NTSTATUS DriverEntry(
         return status;
     }
 
+    DriverObject->MajorFunction[IRP_MJ_CREATE] = InitHv;
     DriverObject->DriverUnload = DriverUnload;
 
     RtlInitUnicodeString(&ntWin32DeviceName, DOS_DEVICE_NAME);
@@ -79,4 +83,20 @@ VOID DriverUnload(
     if (deviceObject != NULL) {
         IoDeleteDevice(deviceObject);
     }
+}
+
+
+NTSTATUS InitHv(
+    PDEVICE_OBJECT DeviceObject,
+    PIRP Irp
+)
+{
+    if (!IsVmxSupported) {
+        HvLogDebug("VMX operation is not supported");
+        return STATUS_SUCCESS;
+    }
+
+    EnableVmxOperation();
+
+    return STATUS_SUCCESS;
 }
