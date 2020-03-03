@@ -31,10 +31,16 @@
     <ClCompile Include="src\logger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\vmx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\logger\logger.h">
       <Filter>Header Files\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="include\arch\vmx.h">
+      <Filter>Header Files\Arch</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
