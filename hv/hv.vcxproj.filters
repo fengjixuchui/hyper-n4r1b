@@ -34,6 +34,9 @@
     <ClCompile Include="src\vmx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\logger\logger.h">
@@ -41,6 +44,12 @@
     </ClInclude>
     <ClInclude Include="include\arch\vmx.h">
       <Filter>Header Files\Arch</Filter>
+    </ClInclude>
+    <ClInclude Include="include\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hv.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

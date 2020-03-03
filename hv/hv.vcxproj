@@ -138,11 +138,14 @@
   <ItemGroup>
     <ClCompile Include="src\logger.c" />
     <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\util.c" />
     <ClCompile Include="src\vmx.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\arch\vmx.h" />
+    <ClInclude Include="include\hv.h" />
     <ClInclude Include="include\logger\logger.h" />
+    <ClInclude Include="include\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

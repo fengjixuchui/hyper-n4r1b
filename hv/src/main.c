@@ -1,4 +1,4 @@
-#include <wdm.h>
+#include <ntddk.h>
 
 #include "..\include\logger\logger.h"
 #include "..\include\arch\vmx.h"

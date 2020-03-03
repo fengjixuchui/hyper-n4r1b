@@ -33,7 +33,7 @@ BOOLEAN IsVmxSupported()
 
 VOID EnableVmxOperation()
 {
-    ULONG cr4;
+    UINT64 cr4;
 
     cr4 = __readcr4();
     // Set bit 13 from CR4 - Virtual Machine Extensions Enable	
