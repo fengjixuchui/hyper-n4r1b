@@ -91,7 +91,10 @@ NTSTATUS InitHv(
     PIRP Irp
 )
 {
-    if (!IsVmxSupported) {
+    UNREFERENCED_PARAMETER(DeviceObject);
+    UNREFERENCED_PARAMETER(Irp);
+
+    if (!IsVmxSupported()) {
         HvLogDebug("VMX operation is not supported");
         return STATUS_SUCCESS;
     }

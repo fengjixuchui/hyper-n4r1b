@@ -4,6 +4,6 @@ ULONG64 VadToPhysicalAddr(
     PVOID
 );
 
-ULONG64 PhysicalAddrToVad(
+PVOID PhysicalAddrToVad(
     ULONG64
 );

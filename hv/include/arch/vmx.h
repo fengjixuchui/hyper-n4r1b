@@ -1,5 +1,6 @@
 #include <wdm.h>
 
+#pragma warning(disable:4214)
 
 #define MSR_IA32_FEATURE_CONTROL 0x3a
 

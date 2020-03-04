@@ -9,7 +9,7 @@ UINT64 VadToPhysicalAddr(
     return MmGetPhysicalAddress(Vad).QuadPart;
 }
 
-UINT64 PhysicalAddrToVad(
+PVOID PhysicalAddrToVad(
     UINT64 Pad
 )
 {
