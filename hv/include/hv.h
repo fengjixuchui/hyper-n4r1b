@@ -1,7 +1,18 @@
 #include "arch/vmx.h"
 
-typedef struct _VCPU_DATA
+#define VMM_STATE_TAG  "Hvvs"
+#define VP_DATA_TAG "Hvvp"
+
+
+typedef struct _VP_DATA
 {
-    VMCS VmxOn;
-    VMCS Vmcs;
-} VCPU_DATA, * PVCPU_DATA;
+    // Vmxon region
+    UINT64 VmxonPad;
+    PVMCS Vmxon;
+
+    // Vmcs
+    UINT64 VmcsPad;
+    PVMCS Vmcs;
+} VP_DATA, * PVP_DATA;
+
+PVP_DATA VmmState;

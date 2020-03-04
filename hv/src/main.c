@@ -1,14 +1,14 @@
 #include <ntddk.h>
 
+#include "..\include\hv.h"
 #include "..\include\logger\logger.h"
-#include "..\include\arch\vmx.h"
-
 
 DRIVER_UNLOAD DriverUnload;
 
 DRIVER_INITIALIZE DriverEntry;
 
 DRIVER_DISPATCH InitHv;
+
 
 #define NT_DEVICE_NAME      L"\\Device\\hv-n4r1b"
 #define DOS_DEVICE_NAME     L"\\DosDevices\\hv-n4r1b"
@@ -49,7 +49,7 @@ NTSTATUS DriverEntry(
         return status;
     }
 
-    DriverObject->MajorFunction[IRP_MJ_CREATE] = InitHv;
+    DriverObject->MajorFunction[IRP_MJ_CREATE] = HvCreate;
     DriverObject->DriverUnload = DriverUnload;
 
     RtlInitUnicodeString(&ntWin32DeviceName, DOS_DEVICE_NAME);
@@ -86,20 +86,73 @@ VOID DriverUnload(
 }
 
 
-NTSTATUS InitHv(
+NTSTATUS HvCreate(
     PDEVICE_OBJECT DeviceObject,
     PIRP Irp
 )
 {
     UNREFERENCED_PARAMETER(DeviceObject);
-    UNREFERENCED_PARAMETER(Irp);
 
-    if (!IsVmxSupported()) {
-        HvLogDebug("VMX operation is not supported");
-        return STATUS_SUCCESS;
-    }
+    InitHv();
 
-    EnableVmxOperation();
+    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
     return STATUS_SUCCESS;
 }
+
+PVP_DATA AllocVpData(
+    VOID
+)
+{
+    PVP_DATA virtualProcessorData;
+
+    virtualProcessorData =
+        ExAllocatePoolWithTag(NonPagedPool, sizeof(VP_DATA), VP_DATA_TAG);
+
+    if (!virtualProcessorData) {
+        HvLogDebug("Error allocating Virtual Processor data\n");
+        return NULL;
+    }
+
+    RtlSecureZeroMemory(virtualProcessorData, sizeof(VP_DATA));
+
+    return virtualProcessorData;
+}
+
+NTSTATUS InitHv(
+    VOID
+)
+{
+
+    NTSTATUS status = STATUS_SUCCESS;
+    INT ProcessorsCount = KeQueryActiveProcessorCountEx(ALL_PROCESSOR_GROUPS);
+    KAFFINITY kAffinityMask;
+
+    if (!IsVmxSupported()) {
+        HvLogDebug("VMX operation is not supported\n");
+        return STATUS_NOT_SUPPORTED;
+    }
+
+
+    VmmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VP_DATA) * ProcessorsCount, VMM_STATE_TAG);
+
+    for (UINT32 i = 0; i < ProcessorsCount; i++) {
+        
+        // Taken from Sinae 
+        kAffinityMask = ipow(2, i);
+        KeSetSystemAffinityThread(kAffinityMask);
+
+        EnableVmxOperation();
+
+        VmmState[i] = *AllocVpData();
+
+        AllocAndInitVmxonRegion(&VmmState[i]);
+        AllocAndInitVmcsRegion(&VmmState[i]);
+    }
+
+
+    return status;
+}
+

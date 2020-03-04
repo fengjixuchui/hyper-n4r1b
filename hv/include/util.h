@@ -1,9 +1,14 @@
 #include <ntddk.h>
 
-ULONG64 VadToPhysicalAddr(
+UINT64 VadToPhysicalAddr(
     PVOID
 );
 
-PVOID PhysicalAddrToVad(
+UINT64 PhysicalAddrToVad(
     ULONG64
+);
+
+INT ipow(
+    INT,
+    INT
 );
