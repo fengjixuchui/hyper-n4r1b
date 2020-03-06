@@ -5,9 +5,10 @@
 #include <string.h>
 
 
-#define HV_SERVICE_NAMEW       L"n4r1b-hypervisor-srv"
-#define HV_SERVICE_INSTALL     0
-#define HV_SERVICE_UNINSTALL   1
+#define HV_SERVICE_NAMEW        L"n4r1b-hypervisor-srv"
+#define HV_DEVICE_NAMEW         L"\\\\.\\n4r1b-hv"
+#define HV_SERVICE_INSTALL      0
+#define HV_SERVICE_UNINSTALL    1
 
 
 _Success_(return == TRUE)
@@ -229,6 +230,38 @@ ManageDriver(
     return bRetVal;
 }
 
+
+BOOLEAN
+StartHiperVisor(
+    VOID
+)
+{
+    HANDLE deviceHandle;
+
+    deviceHandle = CreateFile(HV_DEVICE_NAMEW, 
+                            GENERIC_WRITE,
+                            FILE_SHARE_WRITE,
+                            NULL,
+                            OPEN_EXISTING,
+                            0,
+                            NULL);
+
+    if (deviceHandle == INVALID_HANDLE_VALUE) {
+        fprintf(stderr, __FUNCTION__ " Failed opening handle to device %ws: %#x\n", HV_DEVICE_NAMEW, GetLastError());
+        return FALSE;
+    }
+
+    fprintf(stdout, __FUNCTION__" Press any key to stop the HiperVisor\n");
+    getchar();
+    if (!CloseHandle(deviceHandle)) {
+        fprintf(stderr, __FUNCTION__ " Failed closing handle to device %ws: %#x\n", HV_DEVICE_NAMEW, GetLastError());
+        return FALSE;
+    }
+
+    return TRUE;
+
+}
+
 int __cdecl wmain(int argc, wchar_t* argv[])
 {
     DWORD   retCode = EXIT_SUCCESS;
@@ -289,7 +322,7 @@ int __cdecl wmain(int argc, wchar_t* argv[])
 
             ManageDriver(lpBuffer, HV_SERVICE_NAMEW, HV_SERVICE_INSTALL);
 
-        free_buff:
+free_buff:
             free(lpBuffer);
             lpBuffer = NULL;
         }
@@ -301,13 +334,16 @@ int __cdecl wmain(int argc, wchar_t* argv[])
         if (_wcsnicmp(argv[1], L"unload", wcslen(L"unload")) == 0) {
             ManageDriver(L"", HV_SERVICE_NAMEW, HV_SERVICE_UNINSTALL);
         }
+        else if (_wcsnicmp(argv[1], L"start-hv", wcslen(L"start-hv")) == 0) {
+            StartHiperVisor();
+        }
         else {
             goto usage;
         }
     }
     else {
-    usage:
-        fwprintf(stdout, L"[*] Usage: %ws [ load <hv-n4r1b> | unload ]\n", argv[0]);
+usage:
+        fwprintf(stdout, L"[*] Usage: %ws [ load <hv-n4r1b> | unload | start-hv ]\n", argv[0]);
     }
 
     return retCode;
