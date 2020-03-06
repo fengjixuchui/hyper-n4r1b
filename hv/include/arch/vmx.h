@@ -1,6 +1,8 @@
+#pragma once
 #include <ntddk.h>
 
 #pragma warning(disable:4214)
+#pragma warning(disable:4131)
 
 #define MSR_IA32_FEATURE_CONTROL    0x3a
 #define MSR_IA32_VMX_BASIC          0x480
@@ -66,13 +68,12 @@ VOID EnableVmxOperation(
     VOID
 );
 
-NTSTATUS AllocAndInitVmxonRegion(
-    PVP_DATA
+NTSTATUS AllocAndInitVmxonRegion( 
+    PVP_DATA 
 );
 
-
-VOID AllocAndInitVmcsRegion(
-    PVP_DATA
+NTSTATUS AllocAndInitVmcsRegion( 
+    PVP_DATA 
 );
 
 VOID ExitVmxOperation(

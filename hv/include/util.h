@@ -1,3 +1,4 @@
+#pragma once
 #include <ntddk.h>
 
 UINT64 VadToPhysicalAddr(

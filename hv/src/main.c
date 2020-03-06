@@ -1,23 +1,13 @@
 #include <ntddk.h>
 
-#include "..\include\hv.h"
-#include "..\include\logger\logger.h"
+#include "../include/hv.h"
 
-DRIVER_UNLOAD DriverUnload;
-
-DRIVER_INITIALIZE DriverEntry;
-
-DRIVER_DISPATCH InitHv;
-
-
-#define NT_DEVICE_NAME      L"\\Device\\hv-n4r1b"
-#define DOS_DEVICE_NAME     L"\\DosDevices\\hv-n4r1b"
-
-#define DRIVER_NAME         "hv-n4r1b"   
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
 #endif 
+
+PVP_DATA VmmState;
 
 NTSTATUS DriverEntry(
     PDRIVER_OBJECT  DriverObject,
@@ -50,6 +40,7 @@ NTSTATUS DriverEntry(
     }
 
     DriverObject->MajorFunction[IRP_MJ_CREATE] = HvCreate;
+    DriverObject->MajorFunction[IRP_MJ_CLOSE] = HvClose;
     DriverObject->DriverUnload = DriverUnload;
 
     RtlInitUnicodeString(&ntWin32DeviceName, DOS_DEVICE_NAME);
@@ -85,22 +76,6 @@ VOID DriverUnload(
     }
 }
 
-
-NTSTATUS HvCreate(
-    PDEVICE_OBJECT DeviceObject,
-    PIRP Irp
-)
-{
-    UNREFERENCED_PARAMETER(DeviceObject);
-
-    InitHv();
-
-    Irp->IoStatus.Status = STATUS_SUCCESS;
-    Irp->IoStatus.Information = 0;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-    return STATUS_SUCCESS;
-}
 
 PVP_DATA AllocVpData(
     VOID
@@ -138,7 +113,7 @@ NTSTATUS InitHv(
 
     VmmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VP_DATA) * ProcessorsCount, VMM_STATE_TAG);
 
-    for (UINT32 i = 0; i < ProcessorsCount; i++) {
+    for (INT i = 0; i < ProcessorsCount; i++) {
         
         // Taken from Sinae 
         kAffinityMask = ipow(2, i);
@@ -156,3 +131,35 @@ NTSTATUS InitHv(
     return status;
 }
 
+NTSTATUS HvCreate(
+    PDEVICE_OBJECT DeviceObject,
+    PIRP Irp
+)
+{
+    UNREFERENCED_PARAMETER(DeviceObject);
+
+    InitHv();
+
+    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS HvClose(
+    PDEVICE_OBJECT DeviceObject,
+    PIRP Irp
+)
+{
+    UNREFERENCED_PARAMETER(DeviceObject);
+
+    ExitVmxOperation();
+
+    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+    return STATUS_SUCCESS;
+
+}

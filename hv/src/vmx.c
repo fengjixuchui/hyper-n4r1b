@@ -1,10 +1,7 @@
 #include <ntddk.h>
 #include <intrin.h>
 
-#include "..\include\arch\vmx.h"
-#include "..\include\logger\logger.h"
-#include "..\include\hv.h"
-#include "..\include\util.h"
+#include "../include/hv.h"
 
 BOOLEAN IsVmxSupported()
 {
@@ -107,7 +104,7 @@ NTSTATUS AllocAndInitVmxonRegion(
     return status;
 }
 
-VOID AllocAndInitVmcsRegion(
+NTSTATUS AllocAndInitVmcsRegion(
     PVP_DATA Vp
 )
 {
@@ -145,7 +142,7 @@ VOID AllocAndInitVmcsRegion(
         Vp->Vmcs = lpBuffer;
     }
 
-    Vp->Vmcs = VadToPhysicalAddr(lpBuffer);
+    Vp->VmcsPad = VadToPhysicalAddr(lpBuffer);
 
     vmcs = Vp->Vmcs;
     RtlSecureZeroMemory(vmcs, PAGE_SIZE);
@@ -168,22 +165,20 @@ VOID AllocAndInitVmcsRegion(
     return status;
 }
 
-VOID ExitVmxOperation(
-    PVP_DATA VmmState
-)
+VOID ExitVmxOperation()
 {
     KAFFINITY kAffinityMask;
     INT ProcessorsCount = KeQueryActiveProcessorCountEx(ALL_PROCESSOR_GROUPS);
 
     
-    for (size_t i = 0; i < ProcessorsCount; i++) {
+    for (INT i = 0; i < ProcessorsCount; i++) {
 
         kAffinityMask = ipow(2, i);
         KeSetSystemAffinityThread(kAffinityMask);
 
         __vmx_off();
-        MmFreeContiguousMemory(PhysicalAddrToVad(VmmState[i].VmcsPad));
-        MmFreeContiguousMemory(PhysicalAddrToVad(VmmState[i].VmxonPad));
+        MmFreeContiguousMemory((PVOID) PhysicalAddrToVad(VmmState[i].VmcsPad));
+        MmFreeContiguousMemory((PVOID) PhysicalAddrToVad(VmmState[i].VmxonPad));
 
     }
 }
