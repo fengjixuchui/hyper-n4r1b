@@ -6,7 +6,7 @@
 
 
 #define HV_SERVICE_NAMEW        L"n4r1b-hypervisor-srv"
-#define HV_DEVICE_NAMEW         L"\\\\.\\n4r1b-hv"
+#define HV_DEVICE_NAMEW         L"\\\\.\\hv-n4r1b"
 #define HV_SERVICE_INSTALL      0
 #define HV_SERVICE_UNINSTALL    1
 
