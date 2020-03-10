@@ -32,17 +32,17 @@ typedef union _IA32_VMX_BASIC
     UINT64 All;
     struct
     {
-        UINT32 RevisionIdentifier : 31;
-        UINT32 Reserved : 1;
-        UINT32 RegionSize : 12;
-        UINT32 RegionClear : 1;
-        UINT32 Reserved1 : 3;
-        UINT32 SupportedIA64 : 1;
-        UINT32 SupportedDualMoniter : 1;
-        UINT32 MemoryType : 4;
-        UINT32 VmExitReport : 1;
-        UINT32 VmxCapabilityHint : 1;
-        UINT32 Reserved2 : 8;
+        UINT64 RevisionIdentifier : 31;
+        UINT64 Reserved : 1;
+        UINT64 RegionSize : 12;
+        UINT64 RegionClear : 1;
+        UINT64 Reserved1 : 3;
+        UINT64 SupportedIA64 : 1;
+        UINT64 SupportedDualMoniter : 1;
+        UINT64 MemoryType : 4;
+        UINT64 VmExitReport : 1;
+        UINT64 VmxCapabilityHint : 1;
+        UINT64 Reserved2 : 8;
     } Fields;
 } IA32_VMX_BASIC, * PIA32_VMX_BASIC;
 

@@ -77,25 +77,6 @@ VOID DriverUnload(
 }
 
 
-PVP_DATA AllocVpData(
-    VOID
-)
-{
-    PVP_DATA virtualProcessorData;
-
-    virtualProcessorData =
-        ExAllocatePoolWithTag(NonPagedPool, sizeof(VP_DATA), VP_DATA_TAG);
-
-    if (!virtualProcessorData) {
-        HvLogDebug("Error allocating Virtual Processor data\n");
-        return NULL;
-    }
-
-    RtlSecureZeroMemory(virtualProcessorData, sizeof(VP_DATA));
-
-    return virtualProcessorData;
-}
-
 NTSTATUS InitHv(
     VOID
 )
@@ -115,16 +96,34 @@ NTSTATUS InitHv(
 
     for (INT i = 0; i < ProcessorsCount; i++) {
         
-        // Taken from Sinae 
+        // Taken from Sinae's post
         kAffinityMask = ipow(2, i);
         KeSetSystemAffinityThread(kAffinityMask);
 
         EnableVmxOperation();
 
-        VmmState[i] = *AllocVpData();
+        HvLogDebug("VMX operation enabled for processor %d\n", i);
 
-        AllocAndInitVmxonRegion(&VmmState[i]);
-        AllocAndInitVmcsRegion(&VmmState[i]);
+        status = AllocAndInitVmxonRegion(&VmmState[i]);
+
+        if (!NT_SUCCESS(status)) {
+            HvLogDebug("Error %08xd initializing VMXON Region for processor %d\n", status, i);
+
+        }
+
+        HvLogDebug("VMXON Region initialized for processor %d\n", i);
+
+        status = AllocAndInitVmcsRegion(&VmmState[i]);
+        
+        if (!NT_SUCCESS(status)) {
+            HvLogDebug("Error %08xd initializing VMCS Region for processor %d\n", status, i);
+
+
+        }
+
+
+        HvLogDebug("VMCS Region initialized for processor %d\n", i);
+
     }
 
 

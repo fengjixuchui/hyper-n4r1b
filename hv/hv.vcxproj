@@ -142,6 +142,8 @@
     <ClCompile Include="src\vmx.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\arch\ept.h" />
+    <ClInclude Include="include\arch\vmcs.h" />
     <ClInclude Include="include\arch\vmx.h" />
     <ClInclude Include="include\hv.h" />
     <ClInclude Include="include\logger\logger.h" />

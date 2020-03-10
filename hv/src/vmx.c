@@ -41,7 +41,6 @@ VOID EnableVmxOperation()
     cr4 |= 0x2000;
     __writecr4(cr4);
 
-    HvLogDebug("VMX operation enabled\n");
 }
 
 
@@ -61,6 +60,7 @@ NTSTATUS AllocAndInitVmxonRegion(
         return STATUS_INVALID_PARAMETER;
     }
 
+    physicalAddress.QuadPart = ~0LL;
     vmxBasic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
     if (vmxBasic.Fields.RegionSize > PAGE_SIZE) {
@@ -70,6 +70,8 @@ NTSTATUS AllocAndInitVmxonRegion(
             HvLogDebug("Error trying to allocate VMXON region\n");
             return STATUS_MEMORY_NOT_ALLOCATED;
         }
+
+        RtlSecureZeroMemory(vmxon, PAGE_SIZE);
         Vp->Vmxon = lpBuffer;
     } else {
         lpBuffer = MmAllocateContiguousMemory(vmxBasic.Fields.RegionSize, physicalAddress);
@@ -79,13 +81,13 @@ NTSTATUS AllocAndInitVmxonRegion(
             return STATUS_MEMORY_NOT_ALLOCATED;
         }
 
+        RtlSecureZeroMemory(vmxon, vmxBasic.Fields.RegionSize);
         Vp->Vmxon = lpBuffer;
     }
 
     Vp->VmxonPad = VadToPhysicalAddr(lpBuffer);
 
     vmxon = Vp->Vmxon;
-    RtlSecureZeroMemory(vmxon, PAGE_SIZE);
 
     vmxon->Header.All = vmxBasic.Fields.RevisionIdentifier;
 
@@ -120,6 +122,7 @@ NTSTATUS AllocAndInitVmcsRegion(
         return STATUS_INVALID_PARAMETER;
     }
 
+    physicalAddress.QuadPart = ~0LL;
     vmxBasic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
     if (vmxBasic.Fields.RegionSize > PAGE_SIZE) {
@@ -129,6 +132,7 @@ NTSTATUS AllocAndInitVmcsRegion(
             HvLogDebug("Error trying to allocate VMXON region\n");
             return STATUS_INSUFFICIENT_RESOURCES;
         }
+        RtlSecureZeroMemory(lpBuffer, PAGE_SIZE);
         Vp->Vmcs = lpBuffer;
     }
     else {
@@ -139,13 +143,13 @@ NTSTATUS AllocAndInitVmcsRegion(
             return STATUS_INSUFFICIENT_RESOURCES;
         }
 
+        RtlSecureZeroMemory(lpBuffer, vmxBasic.Fields.RegionSize);
         Vp->Vmcs = lpBuffer;
     }
 
     Vp->VmcsPad = VadToPhysicalAddr(lpBuffer);
 
     vmcs = Vp->Vmcs;
-    RtlSecureZeroMemory(vmcs, PAGE_SIZE);
 
     vmcs->Header.All = vmxBasic.Fields.RevisionIdentifier;
     vmcs->Header.Fields.ShadowVmcsIndicator = 0;

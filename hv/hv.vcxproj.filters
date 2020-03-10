@@ -51,5 +51,11 @@
     <ClInclude Include="include\hv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\arch\ept.h">
+      <Filter>Header Files\Arch</Filter>
+    </ClInclude>
+    <ClInclude Include="include\arch\vmcs.h">
+      <Filter>Header Files\Arch</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
