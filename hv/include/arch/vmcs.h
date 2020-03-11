@@ -36,7 +36,8 @@ typedef enum _ENCODING_WIDTH
 } ENCODING_WIDTH;
 
 // Intel manual - Appendix B: FIELD ENCODING IN VMCS 
-typedef enum _VMCS_FIELDS {
+typedef enum _VMCS_FIELDS 
+{
     // *** 16-BITS FIELDS ***
     // 16-Bit Control Fields
     VirtualProdessorId = VMCS_COMPONENT_16(0, Control), // VPID
@@ -274,4 +275,4 @@ typedef enum _VMCS_FIELDS {
     HostIA32CET = VMCS_ENCODE_FULL(12, HostState, Natural),
     HostSSP = VMCS_ENCODE_FULL(13, HostState, Natural),
     HostIA32InterruptSSPTableAddr = VMCS_ENCODE_FULL(14, HostState, Natural)
-};
+} VMCS_FIELDS;
