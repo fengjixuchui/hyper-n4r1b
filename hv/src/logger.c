@@ -1,4 +1,4 @@
-#include <wdm.h>
+#include <ntifs.h>
 #include <stdio.h>
 #include <stdarg.h>
 

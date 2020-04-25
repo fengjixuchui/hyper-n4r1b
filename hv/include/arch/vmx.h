@@ -1,24 +1,45 @@
 #pragma once
-#include <ntddk.h>
 
-#pragma warning(disable:4214)
+#include "selectors.h"
+
 #pragma warning(disable:4131)
+#pragma warning(disable:4201)
+#pragma warning(disable:4214)
 
-#define MSR_IA32_FEATURE_CONTROL        0x3A
-#define MSR_IA32_VMX_BASIC              0x480
-#define MSR_IA32_VMX_PINBASED_CTLS      0x481
-#define MSR_IA32_VMX_PROCBASED_CTLS     0x482
-#define MSR_IA32_VMX_EXIT_CTLS          0x483
-#define MSR_IA32_VMX_ENTRY_CTLS         0x484
-#define MSR_IA32_VMX_MISC               0x485
-#define MSR_IA32_VMX_CR0_FIXED0         0x486
-#define MSR_IA32_VMX_CR0_FIXED1         0x487
-#define MSR_IA32_VMX_CR4_FIXED0         0x488
-#define MSR_IA32_VMX_CR4_FIXED1         0x489
-#define MSR_IA32_VMX_VMCS_ENUM          0x48A
-#define MSR_IA32_VMX_PROCBASED_CTLS2    0x48B
-#define MSR_IA32_VMX_EPT_VPID_CAP       0x48C
-#define MSR_IA32_VMX_VMFUNC             0x491
+#define MSR_IA32_FEATURE_CONTROL                0x3A
+#define MSR_IA32_VMX_BASIC                      0x480
+#define MSR_IA32_VMX_PINBASED_CTLS              0x481
+#define MSR_IA32_VMX_PROCBASED_CTLS             0x482
+#define MSR_IA32_VMX_EXIT_CTLS                  0x483
+#define MSR_IA32_VMX_ENTRY_CTLS                 0x484
+#define MSR_IA32_VMX_MISC                       0x485
+#define MSR_IA32_VMX_CR0_FIXED0                 0x486
+#define MSR_IA32_VMX_CR0_FIXED1                 0x487
+#define MSR_IA32_VMX_CR4_FIXED0                 0x488
+#define MSR_IA32_VMX_CR4_FIXED1                 0x489
+#define MSR_IA32_VMX_VMCS_ENUM                  0x48A
+#define MSR_IA32_VMX_PROCBASED_CTLS2            0x48B
+#define MSR_IA32_VMX_EPT_VPID_CAP               0x48C
+#define MSR_IA32_VMX_TRUE_PINBASED_CTLS         0x48D
+#define MSR_IA32_VMX_TRUE_PROCBASED_CTLS        0x48E
+#define MSR_IA32_VMX_TRUE_EXIT_CTLS             0x48F
+#define MSR_IA32_VMX_TRUE_ENTRY_CTLS            0x490
+#define MSR_IA32_VMX_VMFUNC                     0x491
+
+typedef enum _ACTIVY_STATE {
+    ACTIVITY_STATE_ACTIVE = 0,       
+    ACTIVITY_STATE_HLT,          
+    ACTIVITY_STATE_SHUTDOWN,
+    ACTIVITY_STATE_WAIT_FOR_SIPI
+} ACTIVY_STATE;
+
+typedef enum _CONTROL_TYPE {
+    PIN_BASED_CTLS_TYPE,
+    PROCBASED_CTLS_TYPE,
+    PROCBASED_CTLS2_TYPE,
+    VM_ENTRY_CTLS_TYPE,
+    VM_EXIT_CTLS_TYPE,
+} CONTROL_TYPE;
 
 // https://tandasat.github.io/HyperPlatform/doxygen/union_ia32_feature_control_msr.html
 // Table 6-1. Layout of IA32_FEATURE_CONTROL 
@@ -47,39 +68,25 @@ typedef union _IA32_VMX_BASIC
     {
         UINT64 RevisionIdentifier : 31;
         UINT64 Reserved : 1;
-        UINT64 RegionSize : 12;
-        UINT64 RegionClear : 1;
+        UINT64 RegionSize : 13;
         UINT64 Reserved1 : 3;
         UINT64 SupportedIA64 : 1;
-        UINT64 SupportedDualMoniter : 1;
+        UINT64 SupportedDualMonitor : 1;
         UINT64 MemoryType : 4;
         UINT64 VmExitReport : 1;
         UINT64 VmxCapabilityHint : 1;
-        UINT64 Reserved2 : 8;
+        UINT64 VmEntryCanDeliverHwException : 1;
+        UINT64 Reserved2 : 7;
     } Fields;
 } IA32_VMX_BASIC, * PIA32_VMX_BASIC;
-
-typedef struct _VMCS
-{
-    union {
-        UINT32 All;
-        struct {
-            UINT32 RevisionId : 31;
-            UINT32 ShadowVmcsIndicator : 1;
-        } Fields;
-    } Header;
-
-    UINT32 AbortIndicator;
-    UINT8 Data[PAGE_SIZE - 8];
-} VMCS, * PVMCS;
 
 // 24.6 VM-EXECUTION CONTROL FIELDS
 
 // Table 24-5. Definitions of Pin-Based VM-Execution Controls
-typedef struct _PIN_BASED_EXECUTION_CONTROLS
+typedef union _PIN_BASED_EXECUTION_CONTROL
 {
     UINT32 All;
-    union {
+    struct {
         UINT32 ExternalInterruptExiting : 1;
         UINT32 Reserved : 2;
         UINT32 NMIExiting : 1;
@@ -88,13 +95,13 @@ typedef struct _PIN_BASED_EXECUTION_CONTROLS
         UINT32 ActivateVMXPreemptionTimer : 1;
         UINT32 ProcessPostedInterrupts : 1;
     } Fields;
-} PIN_BASED_EXECUTION_CONTROLS, *PPIN_BASED_EXECUTION_CONTROLS;
+} PIN_BASED_EXECUTION_CONTROL, *PPIN_BASED_EXECUTION_CONTROL;
 
 // Table 24-6. Definitions of Primary Processor-Based VM-Execution Controls
-typedef struct _PRIMARY_PROC_BASED_EXECUTION_CONTROLS
+typedef union _PRIMARY_PROC_BASED_EXECUTION_CONTROL
 {
     UINT32 All;
-    union {
+    struct {
         UINT32 Reserved : 2;
         UINT32 InterrupWindowsExiting : 1;
         UINT32 UseTSCOffseting : 1;
@@ -123,13 +130,13 @@ typedef struct _PRIMARY_PROC_BASED_EXECUTION_CONTROLS
         UINT32 PAUSEExiting : 1;
         UINT32 ActivateSecondaryControls : 1;
     } Fields;
-} PRIMARY_PROC_BASED_EXECUTION_CONTROLS, *PPRIMARY_PROC_BASED_EXECUTION_CONTROLS;
+} PRIMARY_PROC_BASED_EXECUTION_CONTROL, *PPRIMARY_PROC_BASED_EXECUTION_CONTROL;
 
 // Table 24-7. Definitions of Secondary Processor-Based VM-Execution Controls
-typedef struct _SECONDARY_PROC_BASED_EXECUTION_CONTROLS
+typedef union _SECONDARY_PROC_BASED_EXECUTION_CONTROL
 {
     UINT32 All;
-    union {
+    struct {
         UINT32 VirtualizeAPICAccesses : 1;
         UINT32 EnableEPT : 1;
         UINT32 DescriptorTableExiting : 1;
@@ -160,13 +167,13 @@ typedef struct _SECONDARY_PROC_BASED_EXECUTION_CONTROLS
         UINT32 Reserved1 : 1;
         UINT32 EnableENCLVExiting : 1;
     } Fields;
-} SECONDARY_PROC_BASED_EXECUTION_CONTROLS, * PSECONDARY_PROC_BASED_EXECUTION_CONTROLS;
+} SECONDARY_PROC_BASED_EXECUTION_CONTROL, * PSECONDARY_PROC_BASED_EXECUTION_CONTROL;
 
 // Table 24-11. Definitions of VM-Exit Controls
-typedef struct _VM_EXIT_CONTROLS
+typedef union _VM_EXIT_CONTROL
 {
     UINT32 All;
-    union {
+    struct {
         UINT32 Reserved : 2;
         UINT32 SaveDebugControls : 1;
         UINT32 Reserved1 : 6;
@@ -187,13 +194,13 @@ typedef struct _VM_EXIT_CONTROLS
         UINT32 Reserved6 : 2;
         UINT32 LoadCETState : 1;
     } Fields;
-} VM_EXIT_CONTROLS, *PVM_EXIT_CONTROLS;
+} VM_EXIT_CONTROL, *PVM_EXIT_CONTROL;
 
 // Table 24-13. Definitions of VM-Entry Controls
-typedef struct _VM_ENTRY_CONTROLS
+typedef union _VM_ENTRY_CONTROL
 {
     UINT32 All;
-    union {
+    struct {
         UINT32 Reserved : 2;
         UINT32 LoadDebugControls : 1;
         UINT32 Reserved1 : 6;
@@ -210,24 +217,43 @@ typedef struct _VM_ENTRY_CONTROLS
         UINT32 Reserved3 : 1;
         UINT32 LoadCETState : 1;
     } Fields;
-} VM_ENTRY_CONTROLS, *PVM_ENTRY_CONTROLS;
+} VM_ENTRY_CONTROL, *PVM_ENTRY_CONTROL;
 
-BOOLEAN IsVmxSupported(
+typedef union _RESERVED_CONTROLS_DEFAULT_SETTINGS
+{
+    UINT64 DefaultSettings;
+    struct {
+        UINT32 Default0;
+        UINT32 Default1;
+    };
+} RESERVED_CONTROLS_DEFAULT_SETTINGS, *PRESERVED_CONTROLS_DEFAULT_SETTINGS;
+
+BOOLEAN 
+IsVmxSupported(
     VOID
 );
 
-VOID EnableVmxOperation(
+VOID 
+EnableVmxOperation(
     VOID
 );
 
-NTSTATUS AllocAndInitVmxonRegion( 
+NTSTATUS 
+AllocAndInitVmxonRegion( 
     PVP_DATA 
 );
 
-NTSTATUS AllocAndInitVmcsRegion( 
+NTSTATUS 
+AllocAndInitVmcsRegion( 
     PVP_DATA 
 );
 
-VOID ExitVmxOperation(
+VOID 
+ExitVmxOperation(
     VOID
+);
+
+NTSTATUS
+InitializeVMCS(
+    PVP_DATA
 );

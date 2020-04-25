@@ -23,6 +23,9 @@
     <Filter Include="Header Files\Arch">
       <UniqueIdentifier>{a9f6125c-9ede-4955-a8dc-0dc80634ee3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\asm">
+      <UniqueIdentifier>{4880fdbf-92d8-4503-95fd-2340059eec76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.c">
@@ -35,6 +38,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ept.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vmexit.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -57,5 +66,22 @@
     <ClInclude Include="include\arch\vmcs.h">
       <Filter>Header Files\Arch</Filter>
     </ClInclude>
+    <ClInclude Include="include\arch\msr.h">
+      <Filter>Header Files\Arch</Filter>
+    </ClInclude>
+    <ClInclude Include="include\arch\selectors.h">
+      <Filter>Header Files\Arch</Filter>
+    </ClInclude>
+    <ClInclude Include="include\arch\vmexit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="src\asm\selectors.asm">
+      <Filter>Source Files\asm</Filter>
+    </MASM>
+    <MASM Include="src\asm\_vmexit.asm">
+      <Filter>Source Files\asm</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

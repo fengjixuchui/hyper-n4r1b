@@ -102,6 +102,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -136,20 +137,32 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ept.c" />
     <ClCompile Include="src\logger.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\util.c" />
+    <ClCompile Include="src\vmexit.c" />
     <ClCompile Include="src\vmx.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\arch\ept.h" />
+    <ClInclude Include="include\arch\msr.h" />
+    <ClInclude Include="include\arch\selectors.h" />
     <ClInclude Include="include\arch\vmcs.h" />
+    <ClInclude Include="include\arch\vmexit.h" />
     <ClInclude Include="include\arch\vmx.h" />
     <ClInclude Include="include\hv.h" />
     <ClInclude Include="include\logger\logger.h" />
     <ClInclude Include="include\util.h" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="src\asm\selectors.asm" />
+    <MASM Include="src\asm\_vmexit.asm">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(FileName).obj</ObjectFileName>
+    </MASM>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>
