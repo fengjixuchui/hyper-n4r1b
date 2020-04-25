@@ -1,15 +1,22 @@
 #pragma once
-#include <ntddk.h>
 
-UINT64 VadToPhysicalAddr(
+UINT64 
+VadToPhysicalAddr(
     PVOID
 );
 
-UINT64 PhysicalAddrToVad(
+UINT64 
+PhysicalAddrToVad(
     ULONG64
 );
 
-INT ipow(
+INT 
+ipow(
     INT,
     INT
+);
+
+VOID
+CaptureContext(
+    PCONTEXT
 );

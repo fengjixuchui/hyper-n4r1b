@@ -1,4 +1,4 @@
-#include <ntddk.h>
+#include <ntifs.h>
 
 #include "../include/hv.h"
 
@@ -9,7 +9,8 @@
 
 PVP_DATA VmmState;
 
-NTSTATUS DriverEntry(
+NTSTATUS 
+DriverEntry(
     PDRIVER_OBJECT  DriverObject,
     PUNICODE_STRING RegistryPath
 )
@@ -77,13 +78,14 @@ VOID DriverUnload(
 }
 
 
-NTSTATUS InitHv(
+NTSTATUS 
+InitHv(
     VOID
 )
 {
 
     NTSTATUS status = STATUS_SUCCESS;
-    INT ProcessorsCount = KeQueryActiveProcessorCountEx(ALL_PROCESSOR_GROUPS);
+    INT processorsCount = KeQueryActiveProcessorCountEx(ALL_PROCESSOR_GROUPS);
     KAFFINITY kAffinityMask;
 
     if (!IsVmxSupported()) {
@@ -92,9 +94,11 @@ NTSTATUS InitHv(
     }
 
 
-    VmmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VP_DATA) * ProcessorsCount, VMM_STATE_TAG);
+    VmmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VP_DATA) * processorsCount, VMM_STATE_TAG);
 
-    for (INT i = 0; i < ProcessorsCount; i++) {
+    RtlZeroMemory(VmmState, sizeof(VP_DATA) * processorsCount);
+
+    for (INT i = 0; i < processorsCount; i++) {
         
         // Taken from Sinae's post
         kAffinityMask = ipow(2, i);
@@ -108,45 +112,51 @@ NTSTATUS InitHv(
 
         if (!NT_SUCCESS(status)) {
             HvLogDebug("Error %08xd initializing VMXON Region for processor %d\n", status, i);
-
+            break;
         }
 
         HvLogDebug("VMXON Region initialized for processor %d\n", i);
 
         status = AllocAndInitVmcsRegion(&VmmState[i]);
+
+        VmmState[i].MsrBitmapPad = VadToPhysicalAddr(&VmmState[i].MsrBitmap);
         
         if (!NT_SUCCESS(status)) {
             HvLogDebug("Error %08xd initializing VMCS Region for processor %d\n", status, i);
-
-
+            break;
         }
 
-
-        HvLogDebug("VMCS Region initialized for processor %d\n", i);
-
+        status = InitializeVMCS(&VmmState[i]);
+       
     }
 
 
     return status;
 }
 
-NTSTATUS HvCreate(
+NTSTATUS 
+HvCreate(
     PDEVICE_OBJECT DeviceObject,
     PIRP Irp
 )
 {
     UNREFERENCED_PARAMETER(DeviceObject);
+    
+    NTSTATUS status = STATUS_SUCCESS;
 
-    InitHv();
+    if (!NT_SUCCESS(InitHv())) {
+        // Do some cleanup
+    }
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status = status;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
     return STATUS_SUCCESS;
 }
 
-NTSTATUS HvClose(
+NTSTATUS 
+HvClose(
     PDEVICE_OBJECT DeviceObject,
     PIRP Irp
 )
